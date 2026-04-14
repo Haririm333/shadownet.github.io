@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0xSEC — Cybersecurity Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b0f;
+    --bg2: #0d1117;
+    --bg3: #111820;
+    --green: #00ff88;
+    --green2: #00cc6a;
+    --green3: #004d29;
+    --red: #ff3b5c;
+    --amber: #ffb800;
+    --blue: #4da6ff;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --border: #1e2d3d;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--green3); color: var(--green); }
+
+  a { color: var(--green); text-decoration: none; }
+  a:hover { color: var(--green2); }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── NAV ── */
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav-logo {
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav-logo span {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--green); }
+
+  .nav-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 5rem 2rem 3rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .hero-label {
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .hero-label::before {
+    content: '';
+    display: inline-block;
+    width: 32px;
+    height: 1px;
+    background: var(--green);
+  }
+
+  .hero h1 {
+    font-family: var(--sans);
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.05;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    letter-spacing: -1px;
+  }
+
+  .hero h1 em {
+    color: var(--green);
+    font-style: normal;
+  }
+
+  .hero-sub {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+    line-height: 1.8;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 22px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--green);
+    color: #000;
+    font-weight: 700;
+  }
+  .btn-primary:hover { background: var(--green2); transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--green);
+    border: 1px solid var(--green3);
+  }
+  .btn-ghost:hover { border-color: var(--green); background: var(--green3); }
+
+  /* Threat ticker */
+  .ticker {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 3rem 0;
+    background: var(--bg2);
+    overflow: hidden;
+  }
+
+  .ticker-label {
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+    font-weight: 700;
+  }
+
+  .ticker-track {
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .ticker-inner {
+    display: flex;
+    gap: 3rem;
+    animation: ticker 30s linear infinite;
+    white-space: nowrap;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .ticker-item {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ticker-item .sev {
+    width: 6px; height: 6px; border-radius: 50%;
+  }
+  .sev-crit { background: var(--red); }
+  .sev-high { background: var(--amber); }
+  .sev-med { background: var(--blue); }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    background: var(--bg2);
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .stat {
+    text-align: center;
+    padding: 0.5rem;
+  }
+
+  .stat-val {
+    font-family: var(--sans);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--green);
+    display: block;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::before {
+    content: '//';
+    color: var(--green3);
+  }
+
+  .section-more {
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .section-more:hover { color: var(--green); }
+
+  /* ── FEATURED ARTICLE ── */
+  .featured-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg2);
+    margin-bottom: 2rem;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .featured-card:hover { border-color: var(--green3); transform: translateY(-2px); }
+
+  .featured-img {
+    width: 100%;
+    height: 200px;
+    background: var(--bg3);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .featured-img canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .featured-img-label {
+    position: relative;
+    z-index: 1;
+    font-family: var(--sans);
+    font-size: 3rem;
+    font-weight: 800;
+    color: rgba(0,255,136,0.15);
+    letter-spacing: -2px;
+    user-select: none;
+  }
+
+  .featured-body { padding: 1.5rem; }
+
+  .art-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+
+  .tag-red { background: rgba(255,59,92,0.12); color: var(--red); border: 1px solid rgba(255,59,92,0.25); }
+  .tag-green { background: rgba(0,255,136,0.08); color: var(--green); border: 1px solid var(--green3); }
+  .tag-amber { background: rgba(255,184,0,0.10); color: var(--amber); border: 1px solid rgba(255,184,0,0.25); }
+  .tag-blue { background: rgba(77,166,255,0.10); color: var(--blue); border: 1px solid rgba(77,166,255,0.25); }
+
+  .art-date { font-size: 11px; color: var(--muted); }
+
+  .featured-body h2 {
+    font-family: var(--sans);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.3px;
+  }
+
+  .featured-body p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 1.25rem;
+  }
+
+  .art-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .author {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #000;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+
+  .author-name { font-size: 12px; color: var(--text); }
+  .author-role { font-size: 11px; color: var(--muted); }
+
+  .read-more {
+    font-size: 12px;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: gap 0.2s;
+  }
+  .read-more:hover { gap: 8px; }
+
+  /* ── ARTICLE LIST ── */
+  .article-list { display: flex; flex-direction: column; gap: 1rem; }
+
+  .article-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.25rem;
+    background: var(--bg2);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .article-card:hover { border-color: var(--green3); background: var(--bg3); }
+
+  .art-index {
+    font-family: var(--sans);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--border);
+    flex-shrink: 0;
+    width: 36px;
+    text-align: right;
+    line-height: 1;
+    margin-top: 2px;
+  }
+
+  .art-content { flex: 1; min-width: 0; }
+
+  .art-content h3 {
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+
+  .art-content p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .widget {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg2);
+    overflow: hidden;
+  }
+
+  .widget-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .widget-body { padding: 16px; }
+
+  /* Threat level widget */
+  .threat-meter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .threat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .threat-name { font-size: 11px; color: var(--muted); width: 80px; flex-shrink: 0; }
+
+  .threat-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .threat-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  .threat-pct { font-size: 11px; color: var(--text); width: 30px; text-align: right; }
+
+  /* Newsletter */
+  .newsletter-form { display: flex; flex-direction: column; gap: 8px; }
+
+  .newsletter-form input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 9px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .newsletter-form input::placeholder { color: var(--muted); }
+  .newsletter-form input:focus { border-color: var(--green3); }
+
+  .newsletter-form button {
+    background: var(--green);
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 9px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .newsletter-form button:hover { background: var(--green2); }
+
+  /* CVE feed */
+  .cve-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .cve-item {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg3);
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .cve-item:hover { border-color: var(--green3); }
+
+  .cve-id { font-size: 12px; color: var(--green); font-weight: 700; margin-bottom: 3px; }
+  .cve-desc { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 6px; }
+
+  .cve-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .score-crit { background: rgba(255,59,92,0.12); color: var(--red); }
+  .score-high { background: rgba(255,184,0,0.10); color: var(--amber); }
+
+  /* Tools list */
+  .tools-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .tool-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .tool-item:last-child { border-bottom: none; }
+
+  .tool-icon {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .tool-name { font-size: 12px; color: var(--text); font-weight: 500; }
+  .tool-cat { font-size: 10px; color: var(--muted); }
+
+  /* ── CATEGORIES ── */
+  .categories {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem 3rem;
+  }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 1.5rem;
+  }
+
+  .cat-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.25rem;
+    background: var(--bg2);
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+    text-align: center;
+  }
+  .cat-card:hover { border-color: var(--green3); transform: translateY(-2px); }
+
+  .cat-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .cat-name {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .cat-count { font-size: 11px; color: var(--muted); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: gap;
+  }
+
+  .footer-brand {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--green);
+  }
+
+  .footer-copy { font-size: 11px; color: var(--muted); }
+
+  /* ── SEARCH ── */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    transition: border-color 0.2s;
+  }
+  .search-bar:focus-within { border-color: var(--green3); }
+
+  .search-bar input {
+    background: none;
+    border: none;
+    outline: none;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    flex: 1;
+  }
+  .search-bar input::placeholder { color: var(--muted); }
+  .search-bar span { font-size: 11px; color: var(--muted); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero, .stats-bar, .main, .categories {
+    animation: fadeUp 0.6s ease both;
+  }
+  .stats-bar { animation-delay: 0.1s; }
+  .main { animation-delay: 0.2s; }
+  .categories { animation-delay: 0.3s; }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .modal-backdrop.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    max-width: 640px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 2rem;
+    animation: fadeUp 0.3s ease;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-title {
+    font-family: var(--sans);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+    padding-right: 1rem;
+  }
+
+  .modal-close {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    width: 28px; height: 28px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .modal-close:hover { border-color: var(--red); color: var(--red); }
+
+  .modal-body { font-size: 13px; color: var(--muted); line-height: 1.9; }
+  .modal-body p { margin-bottom: 1rem; }
+
+  .modal-body code {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--green);
+  }
+
+  .modal-body pre {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-size: 12px;
+    color: var(--green);
+    line-height: 1.6;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .main { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><span></span>0xSEC</div>
+  <ul class="nav-links">
+    <li><a href="#" class="active">Feed</a></li>
+    <li><a href="#">Vulnerabilities</a></li>
+    <li><a href="#">Malware</a></li>
+    <li><a href="#">Tools</a></li>
+    <li><a href="#">Research</a></li>
+  </ul>
+  <div class="nav-status"><div class="status-dot"></div>Live threat feed</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-label">Cybersecurity Intelligence Platform</div>
+  <h1>Stay ahead of<br>the <em>threat</em> landscape</h1>
+  <p class="hero-sub">In-depth analysis, vulnerability research, and security insights from the trenches. No fluff — just signal.</p>
+  <div class="hero-actions">
+    <button class="btn btn-primary" onclick="openModal('subscribe')">Subscribe to alerts</button>
+    <button class="btn btn-ghost" onclick="openModal('about')">Learn more //</button>
+  </div>
+
+  <!-- Threat ticker -->
+  <div class="ticker">
+    <div class="ticker-label">LIVE THREATS</div>
+    <div class="ticker-track">
+      <div class="ticker-inner" id="ticker">
+        <div class="ticker-item"><div class="sev sev-crit"></div>CVE-2025-0234 — CVSS 9.8 — Remote Code Execution in OpenSSL</div>
+        <div class="ticker-item"><div class="sev sev-high"></div>CVE-2025-1102 — CVSS 8.1 — Privilege Escalation in Windows Kernel</div>
+        <div class="ticker-item"><div class="sev sev-med"></div>CVE-2025-0789 — CVSS 6.5 — SQL Injection in Apache HTTP Server</div>
+        <div class="ticker-item"><div class="sev sev-crit"></div>APT-29 new campaign targeting NATO infrastructure detected</div>
+        <div class="ticker-item"><div class="sev sev-high"></div>LockBit 4.0 variant spreading via phishing — banking sector</div>
+        <div class="ticker-item"><div class="sev sev-med"></div>Zero-day in Chrome V8 engine — patch available</div>
+        <div class="ticker-item"><div class="sev sev-crit"></div>CVE-2025-0234 — CVSS 9.8 — Remote Code Execution in OpenSSL</div>
+        <div class="ticker-item"><div class="sev sev-high"></div>CVE-2025-1102 — CVSS 8.1 — Privilege Escalation in Windows Kernel</div>
+        <div class="ticker-item"><div class="sev sev-med"></div>CVE-2025-0789 — CVSS 6.5 — SQL Injection in Apache HTTP Server</div>
+        <div class="ticker-item"><div class="sev sev-crit"></div>APT-29 new campaign targeting NATO infrastructure detected</div>
+        <div class="ticker-item"><div class="sev sev-high"></div>LockBit 4.0 variant spreading via phishing — banking sector</div>
+        <div class="ticker-item"><div class="sev sev-med"></div>Zero-day in Chrome V8 engine — patch available</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat"><span class="stat-val" data-target="2847">0</span><span class="stat-label">CVEs this month</span></div>
+  <div class="stat"><span class="stat-val" data-target="142">0</span><span class="stat-label">Active threats</span></div>
+  <div class="stat"><span class="stat-val" data-target="98">0</span><span class="stat-label">Articles published</span></div>
+  <div class="stat"><span class="stat-val" data-target="41">0</span><span class="stat-label">Researchers</span></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+  <div class="content">
+
+    <!-- Featured -->
+    <div class="section-header">
+      <div class="section-title">Featured research</div>
+      <div class="section-more">View all →</div>
+    </div>
+
+    <div class="featured-card" onclick="openArticle(0)">
+      <div class="featured-img">
+        <canvas id="matrixCanvas"></canvas>
+        <div class="featured-img-label">ZERO DAY</div>
+      </div>
+      <div class="featured-body">
+        <div class="art-meta">
+          <span class="tag tag-red">Critical</span>
+          <span class="tag tag-green">Zero-Day</span>
+          <span class="art-date">Apr 14, 2025</span>
+        </div>
+        <h2>Inside the OpenSSL RCE: How attackers are exploiting CVE-2025-0234 in the wild</h2>
+        <p>A critical remote code execution vulnerability in OpenSSL's TLS handshake routine is being actively weaponised by state-sponsored actors. We trace the full exploit chain from initial discovery to in-the-wild PoC.</p>
+        <div class="art-footer">
+          <div class="author">
+            <div class="avatar">AK</div>
+            <div><div class="author-name">Alex Kim</div><div class="author-role">Vulnerability Researcher</div></div>
+          </div>
+          <div class="read-more">Read full analysis →</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article list -->
+    <div class="section-header" style="margin-top: 2.5rem;">
+      <div class="section-title">Latest articles</div>
+      <div class="section-more" id="filter-toggle" onclick="toggleFilter()">Filter ↓</div>
+    </div>
+
+    <div id="filter-row" style="display:none; margin-bottom:1rem; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-ghost" style="font-size:11px; padding:5px 12px;" onclick="filterPosts('all')">All</button>
+      <button class="btn btn-ghost" style="font-size:11px; padding:5px 12px;" onclick="filterPosts('malware')">Malware</button>
+      <button class="btn btn-ghost" style="font-size:11px; padding:5px 12px;" onclick="filterPosts('pentest')">Pentesting</button>
+      <button class="btn btn-ghost" style="font-size:11px; padding:5px 12px;" onclick="filterPosts('privacy')">Privacy</button>
+      <button class="btn btn-ghost" style="font-size:11px; padding:5px 12px;" onclick="filterPosts('network')">Network</button>
+    </div>
+
+    <div class="article-list" id="article-list"></div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Search -->
+    <div class="widget">
+      <div class="widget-header">Search</div>
+      <div class="widget-body">
+        <div class="search-bar">
+          <span>$</span>
+          <input type="text" placeholder="search articles, CVEs..." id="search-input" oninput="handleSearch()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Threat meter -->
+    <div class="widget">
+      <div class="widget-header">Global threat level <span style="color:var(--muted)">LIVE</span></div>
+      <div class="widget-body">
+        <div class="threat-meter">
+          <div class="threat-row">
+            <div class="threat-name">Ransomware</div>
+            <div class="threat-bar-track"><div class="threat-bar-fill" style="width:0%; background:var(--red);" data-val="82"></div></div>
+            <div class="threat-pct">82%</div>
+          </div>
+          <div class="threat-row">
+            <div class="threat-name">Phishing</div>
+            <div class="threat-bar-track"><div class="threat-bar-fill" style="width:0%; background:var(--amber);" data-val="74"></div></div>
+            <div class="threat-pct">74%</div>
+          </div>
+          <div class="threat-row">
+            <div class="threat-name">DDoS</div>
+            <div class="threat-bar-track"><div class="threat-bar-fill" style="width:0%; background:var(--blue);" data-val="55"></div></div>
+            <div class="threat-pct">55%</div>
+          </div>
+          <div class="threat-row">
+            <div class="threat-name">Supply chain</div>
+            <div class="threat-bar-track"><div class="threat-bar-fill" style="width:0%; background:var(--amber);" data-val="63"></div></div>
+            <div class="threat-pct">63%</div>
+          </div>
+          <div class="threat-row">
+            <div class="threat-name">Zero-days</div>
+            <div class="threat-bar-track"><div class="threat-bar-fill" style="width:0%; background:var(--red);" data-val="91"></div></div>
+            <div class="threat-pct">91%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CVE feed -->
+    <div class="widget">
+      <div class="widget-header">Recent CVEs</div>
+      <div class="widget-body">
+        <div class="cve-list">
+          <div class="cve-item" onclick="openModal('cve1')">
+            <div class="cve-id">CVE-2025-0234</div>
+            <div class="cve-desc">OpenSSL TLS handshake RCE — affects versions 3.0–3.3</div>
+            <span class="cve-score score-crit">CVSS 9.8 CRITICAL</span>
+          </div>
+          <div class="cve-item" onclick="openModal('cve2')">
+            <div class="cve-id">CVE-2025-1102</div>
+            <div class="cve-desc">Windows Kernel privilege escalation via win32k driver</div>
+            <span class="cve-score score-high">CVSS 8.1 HIGH</span>
+          </div>
+          <div class="cve-item" onclick="openModal('cve3')">
+            <div class="cve-id">CVE-2025-0789</div>
+            <div class="cve-desc">Apache mod_rewrite SQL injection via crafted URL</div>
+            <span class="cve-score score-high">CVSS 7.5 HIGH</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tools -->
+    <div class="widget">
+      <div class="widget-header">Security tools</div>
+      <div class="widget-body">
+        <div class="tools-list">
+          <div class="tool-item">
+            <div class="tool-icon" style="background:rgba(0,255,136,0.1)">🔍</div>
+            <div><div class="tool-name">Nmap</div><div class="tool-cat">Network scanner</div></div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon" style="background:rgba(255,59,92,0.1)">💣</div>
+            <div><div class="tool-name">Metasploit</div><div class="tool-cat">Exploitation framework</div></div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon" style="background:rgba(77,166,255,0.1)">🔒</div>
+            <div><div class="tool-name">Burp Suite</div><div class="tool-cat">Web app security</div></div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon" style="background:rgba(255,184,0,0.1)">📡</div>
+            <div><div class="tool-name">Wireshark</div><div class="tool-cat">Packet analysis</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Newsletter -->
+    <div class="widget">
+      <div class="widget-header">Threat intel digest</div>
+      <div class="widget-body">
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px; line-height:1.7;">Weekly briefing on critical vulnerabilities, active campaigns, and research. No spam, unsubscribe anytime.</p>
+        <div class="newsletter-form">
+          <input type="email" placeholder="your@email.com" id="email-input" />
+          <button onclick="handleSubscribe()">Subscribe // →</button>
+        </div>
+        <p id="sub-msg" style="font-size:11px; color:var(--green); margin-top:8px; display:none;">Subscribed! Check your inbox.</p>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- CATEGORIES -->
+<section class="categories">
+  <div class="section-header">
+    <div class="section-title">Browse by category</div>
+  </div>
+  <div class="cat-grid">
+    <div class="cat-card"><span class="cat-icon">🛡️</span><div class="cat-name">Defense</div><div class="cat-count">34 articles</div></div>
+    <div class="cat-card"><span class="cat-icon">🔴</span><div class="cat-name">Red Team</div><div class="cat-count">28 articles</div></div>
+    <div class="cat-card"><span class="cat-icon">🐛</span><div class="cat-name">Malware</div><div class="cat-count">41 articles</div></div>
+    <div class="cat-card"><span class="cat-icon">🌐</span><div class="cat-name">Web Sec</div><div class="cat-count">22 articles</div></div>
+    <div class="cat-card"><span class="cat-icon">🔐</span><div class="cat-name">Crypto</div><div class="cat-count">17 articles</div></div>
+    <div class="cat-card"><span class="cat-icon">📱</span><div class="cat-name">Mobile</div><div class="cat-count">15 articles</div></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">0xSEC</div>
+  <div class="footer-copy">© 2025 0xSEC Intelligence. All research for educational purposes only.</div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal" onclick="closeModalBg(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>
+const ARTICLES = [
+  {
+    title: "Inside the OpenSSL RCE: How attackers are exploiting CVE-2025-0234 in the wild",
+    tags: ["Critical","Zero-Day"],
+    tagClasses: ["tag-red","tag-green"],
+    date: "Apr 14, 2025",
+    author: "Alex Kim", role: "Vulnerability Researcher", initials: "AK",
+    category: "pentest",
+    excerpt: "A critical remote code execution vulnerability in OpenSSL's TLS handshake routine is being actively weaponised by state-sponsored actors.",
+    content: `<p>CVE-2025-0234 is a heap buffer overflow in OpenSSL's <code>SSL_read()</code> routine, triggered during TLS 1.3 session resumption. An attacker can send a malformed <code>NewSessionTicket</code> message to overwrite adjacent heap memory and redirect execution flow.</p>
+    <p><strong style="color:#fff">Affected versions:</strong> OpenSSL 3.0.x through 3.3.x. OpenSSL 1.1.1 is not affected due to a different TLS stack implementation.</p>
+    <pre>// Vulnerable pseudocode path:
+ssl3_get_new_session_ticket()
+  → d2i_SSL_SESSION()
+    → tls_process_new_session_ticket()
+      → OPENSSL_malloc(ticket_len)  // ← no bounds check</pre>
+    <p>Threat intelligence indicates APT-29 (Cozy Bear) has been using this vulnerability to compromise VPN concentrators and edge devices in NATO member states since at least March 2025.</p>
+    <p><strong style="color:#fff">Mitigation:</strong> Patch immediately to OpenSSL 3.3.1 or 3.0.10. If patching is not immediately possible, disable TLS session resumption via <code>SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_OFF)</code>.</p>`
+  },
+  {
+    title: "LockBit 4.0 technical breakdown: new obfuscation and anti-analysis techniques",
+    tags: ["Malware","Ransomware"],
+    tagClasses: ["tag-red","tag-amber"],
+    date: "Apr 12, 2025",
+    author: "Priya Nair", role: "Malware Analyst", initials: "PN",
+    category: "malware",
+    excerpt: "LockBit 4.0 introduces polymorphic code generation, UEFI-level persistence, and a redesigned ransom portal. Full static and dynamic analysis.",
+    content: `<p>LockBit 4.0 represents a significant jump in technical sophistication. The new variant uses a custom VM-based obfuscator to make static analysis extremely difficult, and implements a novel UEFI bootkit for persistence that survives OS reinstalls.</p>
+    <p>Key new features include: polymorphic entry point generation per-build, encrypted configuration blob using ChaCha20-Poly1305, intermittent encryption (targeting only the first 512KB of files for speed), and exfiltration via a custom protocol over port 443 to avoid detection.</p>
+    <p><strong style="color:#fff">IOCs:</strong> SHA256 hashes, C2 domains, and YARA rules are available in our threat intelligence portal.</p>`
+  },
+  {
+    title: "Practical guide to SSRF in cloud environments: AWS metadata exploitation",
+    tags: ["Web Sec","Pentesting"],
+    tagClasses: ["tag-blue","tag-green"],
+    date: "Apr 10, 2025",
+    author: "Marcus Webb", role: "Penetration Tester", initials: "MW",
+    category: "pentest",
+    excerpt: "Server-Side Request Forgery in cloud environments can lead to full account takeover. We walk through the attack path from SSRF to IAM credential theft.",
+    content: `<p>SSRF in AWS environments is uniquely dangerous because the Instance Metadata Service (IMDS) exposes IAM credentials at the well-known address <code>http://169.254.169.254</code>.</p>
+    <pre>$ curl -H "X-Forwarded-For: 169.254.169.254" \
+  https://vulnerable-app.com/fetch?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/</pre>
+    <p>The response contains temporary AWS credentials that can be used to enumerate S3 buckets, read Secrets Manager values, or escalate privileges via IAM role chaining. Always enforce IMDSv2 (requiring a PUT token exchange) and use VPC endpoint policies to restrict metadata service access.</p>`
+  },
+  {
+    title: "Building a home threat detection lab with Suricata and Elasticsearch",
+    tags: ["Defense","Blue Team"],
+    tagClasses: ["tag-blue","tag-green"],
+    date: "Apr 9, 2025",
+    author: "Sarah Chen", role: "Security Engineer", initials: "SC",
+    category: "network",
+    excerpt: "Step-by-step guide to setting up a fully functional IDS/SIEM stack at home for $0, using open source tools and a Raspberry Pi.",
+    content: `<p>A home detection lab lets you practice threat hunting and detection engineering without risking production systems. This guide covers installing Suricata as an IDS, shipping logs to Elasticsearch, and building Kibana dashboards for visualisation.</p>
+    <p>Hardware needed: a Raspberry Pi 4 (4GB RAM minimum) or any spare x86 machine, a network tap or managed switch with port mirroring. The full stack runs comfortably in 3GB of RAM using Docker Compose.</p>
+    <pre>version: '3'
+services:
+  suricata:
+    image: jasonish/suricata:latest
+    network_mode: host
+    cap_add: [NET_ADMIN, SYS_NICE]
+  elasticsearch:
+    image: elasticsearch:8.12.0
+    environment:
+      - discovery.type=single-node</pre>`
+  },
+  {
+    title: "Signal Protocol deep-dive: how end-to-end encryption actually works",
+    tags: ["Crypto","Privacy"],
+    tagClasses: ["tag-amber","tag-green"],
+    date: "Apr 7, 2025",
+    author: "Ryo Tanaka", role: "Cryptography Researcher", initials: "RT",
+    category: "privacy",
+    excerpt: "The Double Ratchet algorithm, X3DH key agreement, and sealed sender — dissecting the Signal Protocol that powers the world's most secure messaging apps.",
+    content: `<p>The Signal Protocol combines two cryptographic constructions: the Extended Triple Diffie-Hellman (X3DH) key agreement protocol for establishing initial shared secrets, and the Double Ratchet algorithm for providing forward secrecy and break-in recovery.</p>
+    <p>X3DH uses four Diffie-Hellman operations over Curve25519 to derive the initial master secret from a combination of identity keys, signed pre-keys, and one-time pre-keys. This ensures that even if an attacker later compromises a user's long-term identity key, they cannot decrypt historical messages.</p>
+    <p>The Double Ratchet then derives a new message key for every single message, meaning compromise of one key exposes only one message rather than the entire conversation history.</p>`
+  },
+  {
+    title: "iOS zero-click exploit chain analysis: from iMessage to kernel",
+    tags: ["Mobile","Zero-Day"],
+    tagClasses: ["tag-amber","tag-red"],
+    date: "Apr 5, 2025",
+    author: "Alex Kim", role: "Vulnerability Researcher", initials: "AK",
+    category: "malware",
+    excerpt: "Reverse engineering a recently patched zero-click iMessage exploit. We trace the vulnerability chain from the ImageIO parser bug to PAC bypass and kernel arbitrary write.",
+    content: `<p>Zero-click exploits require no user interaction — the victim simply needs to receive a malicious message. The chain we analysed exploits a heap overflow in the ImageIO JPEG 2000 parser, chains to a PAC bypass in the dyld shared cache, and achieves kernel arbitrary read/write via a race condition in the <code>IOSurface</code> driver.</p>
+    <p>Apple patched this chain in iOS 18.3.2 (CVE-2025-24200). Users are strongly advised to update immediately. BlastDoor, Apple's sandboxed message processing daemon, significantly raises the bar for these attacks but does not make them impossible as this chain demonstrates.</p>`
+  },
+];
+
+let filteredArticles = [...ARTICLES];
+
+function renderArticles(articles) {
+  const list = document.getElementById('article-list');
+  list.innerHTML = articles.map((a, i) => `
+    <div class="article-card" onclick="openArticle(${ARTICLES.indexOf(a)})">
+      <div class="art-index">0${i+1}</div>
+      <div class="art-content">
+        <div class="art-meta" style="margin-bottom:6px;">
+          ${a.tags.map((t,ti) => `<span class="tag ${a.tagClasses[ti]}">${t}</span>`).join('')}
+          <span class="art-date">${a.date}</span>
+        </div>
+        <h3>${a.title}</h3>
+        <p>${a.excerpt}</p>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="avatar" style="width:22px;height:22px;font-size:9px;">${a.initials}</div>
+          <span style="font-size:11px; color:var(--muted);">${a.author}</span>
+          <span style="font-size:11px; color:var(--green); margin-left:auto;">Read →</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterPosts(cat) {
+  filteredArticles = cat === 'all' ? [...ARTICLES] : ARTICLES.filter(a => a.category === cat);
+  renderArticles(filteredArticles);
+}
+
+function handleSearch() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const res = q.length < 2 ? ARTICLES : ARTICLES.filter(a =>
+    a.title.toLowerCase().includes(q) || a.excerpt.toLowerCase().includes(q) || a.tags.some(t => t.toLowerCase().includes(q))
+  );
+  renderArticles(res);
+}
+
+let filterOpen = false;
+function toggleFilter() {
+  filterOpen = !filterOpen;
+  const row = document.getElementById('filter-row');
+  row.style.display = filterOpen ? 'flex' : 'none';
+}
+
+function openArticle(idx) {
+  const a = ARTICLES[idx];
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div class="modal-title">${a.title}</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="art-meta" style="margin-bottom:1.5rem;">
+      ${a.tags.map((t,ti) => `<span class="tag ${a.tagClasses[ti]}">${t}</span>`).join('')}
+      <span class="art-date">${a.date}</span>
+    </div>
+    <div class="author" style="margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--border);">
+      <div class="avatar">${a.initials}</div>
+      <div><div class="author-name">${a.author}</div><div class="author-role">${a.role}</div></div>
+    </div>
+    <div class="modal-body">${a.content}</div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+const MODALS = {
+  subscribe: {
+    title: 'Subscribe to threat alerts',
+    body: `<p>Get instant notifications for critical vulnerabilities, active threat campaigns, and new research published on 0xSEC.</p>
+    <div class="newsletter-form" style="margin-top:1rem;">
+      <input type="email" placeholder="your@email.com" />
+      <button onclick="this.textContent='Subscribed!'">Subscribe // →</button>
+    </div>`
+  },
+  about: {
+    title: 'About 0xSEC',
+    body: `<p>0xSEC is an independent cybersecurity intelligence platform run by a collective of offensive security researchers, malware analysts, and detection engineers.</p>
+    <p>Our mission is to provide high-quality, technically accurate security research that helps defenders stay ahead of evolving threats. All research is conducted ethically and responsibly disclosed to vendors before publication.</p>
+    <p>We cover: vulnerability research, malware analysis, threat intelligence, red team techniques, defensive engineering, and cryptography.</p>`
+  },
+  cve1: {
+    title: 'CVE-2025-0234 — OpenSSL RCE',
+    body: `<p><strong style="color:var(--red)">CVSS 9.8 CRITICAL</strong></p>
+    <p>Heap buffer overflow in OpenSSL's TLS 1.3 session resumption handler. Allows unauthenticated remote code execution with no user interaction required.</p>
+    <p><strong style="color:#fff">Affected:</strong> OpenSSL 3.0.0–3.3.0<br><strong style="color:#fff">Fixed in:</strong> 3.0.10 / 3.3.1<br><strong style="color:#fff">Exploit status:</strong> Active exploitation in wild</p>
+    <pre>Patch: apt update && apt upgrade openssl
+Verify: openssl version -a</pre>`
+  },
+  cve2: {
+    title: 'CVE-2025-1102 — Windows Kernel LPE',
+    body: `<p><strong style="color:var(--amber)">CVSS 8.1 HIGH</strong></p>
+    <p>Use-after-free in win32k.sys NtGdiDdDDICreateAllocation() allows local privilege escalation from any user account to SYSTEM.</p>
+    <p><strong style="color:#fff">Affected:</strong> Windows 10 21H2+, Windows 11, Server 2019+<br><strong style="color:#fff">Fixed in:</strong> April 2025 Patch Tuesday</p>`
+  },
+  cve3: {
+    title: 'CVE-2025-0789 — Apache SQL Injection',
+    body: `<p><strong style="color:var(--amber)">CVSS 7.5 HIGH</strong></p>
+    <p>SQL injection via crafted URL in mod_rewrite's ProxyPassMatch directive. Allows database content extraction without authentication.</p>
+    <p><strong style="color:#fff">Affected:</strong> Apache HTTP Server 2.4.0–2.4.58<br><strong style="color:#fff">Fixed in:</strong> 2.4.59</p>`
+  }
+};
+
+function openModal(key) {
+  const m = MODALS[key];
+  if (!m) return;
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-header">
+      <div class="modal-title">${m.title}</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">${m.body}</div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function closeModalBg(e) { if (e.target.id === 'modal') closeModal(); }
+
+function handleSubscribe() {
+  const v = document.getElementById('email-input').value;
+  if (v && v.includes('@')) {
+    document.getElementById('sub-msg').style.display = 'block';
+    document.getElementById('email-input').value = '';
+  }
+}
+
+// Animate counters
+function animateCounters() {
+  document.querySelectorAll('[data-target]').forEach(el => {
+    const target = +el.dataset.target;
+    let current = 0;
+    const step = target / 60;
+    const timer = setInterval(() => {
+      current = Math.min(current + step, target);
+      el.textContent = Math.round(current).toLocaleString();
+      if (current >= target) clearInterval(timer);
+    }, 16);
+  });
+}
+
+// Animate threat bars
+function animateBars() {
+  document.querySelectorAll('.threat-bar-fill').forEach(bar => {
+    const val = bar.dataset.val;
+    setTimeout(() => { bar.style.width = val + '%'; }, 300);
+  });
+}
+
+// Matrix rain canvas
+function initMatrix() {
+  const canvas = document.getElementById('matrixCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resize();
+
+  const cols   = Math.floor(canvas.width / 14);
+  const drops  = Array(cols).fill(1);
+  const chars  = '01アイウエオカキクケコサシスセソタチツテトナニヌネノABCDEF';
+
+  function draw() {
+    ctx.fillStyle = 'rgba(8,11,15,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#00ff88';
+    ctx.font      = '12px JetBrains Mono, monospace';
+
+    drops.forEach((y, i) => {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(char, i * 14, y * 14);
+      if (y * 14 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }
+
+  setInterval(draw, 50);
+}
+
+// Init
+renderArticles(ARTICLES);
+animateCounters();
+animateBars();
+initMatrix();
+</script>
+</body>
+</html>
